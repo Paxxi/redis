@@ -29,6 +29,7 @@
 
 #ifdef _WIN32
 #include "Win32_Interop/Win32_Portability.h"
+#include <io.h>
 #endif
 #include "server.h"
 #include "sha1.h"

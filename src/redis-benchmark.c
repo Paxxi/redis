@@ -34,6 +34,7 @@
 #include "Win32_Interop/Win32_Signal_Process.h"
 #include "Win32_Interop/Win32_Time.h"
 #include "Win32_Interop/Win32_Error.h"
+#include <io.h>
 #endif
 
 #include "fmacros.h"

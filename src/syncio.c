@@ -30,6 +30,10 @@
 
 #include "server.h"
 
+#if defined(_WIN32)
+#include <io.h>
+#endif
+
 /* ----------------- Blocking sockets I/O with timeouts --------------------- */
 
 /* Redis performs most of the I/O in a nonblocking way, with the exception

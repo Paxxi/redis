@@ -33,6 +33,8 @@
 #include "Win32_Interop/win32_types.h"
 #include "Win32_Interop/Win32_Time.h"
 #include "Win32_Interop/Win32_Error.h"
+#include <io.h>
+#define lseek64 _lseeki64
 #endif
 
 #include "server.h"

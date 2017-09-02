@@ -158,21 +158,21 @@ void rdbCheckSetError(const char *fmt, ...) {
 /* During RDB check we setup a special signal handler for memory violations
  * and similar conditions, so that we can log the offending part of the RDB
  * if the crash is due to broken content. */
-void rdbCheckHandleCrash(int sig, siginfo_t *info, void *secret) {
-    UNUSED(sig);
-    UNUSED(info);
-    UNUSED(secret);
-
-    rdbCheckError("Server crash checking the specified RDB file!");
-    exit(1);
-}
+//void rdbCheckHandleCrash(int sig, siginfo_t *info, void *secret) {
+//    UNUSED(sig);
+//    UNUSED(info);
+//    UNUSED(secret);
+//
+//    rdbCheckError("Server crash checking the specified RDB file!");
+//    exit(1);
+//}
 
 void rdbCheckSetupSignals(void) {
     struct sigaction act;
 
     sigemptyset(&act.sa_mask);
     act.sa_flags = SA_NODEFER | SA_RESETHAND | SA_SIGINFO;
-    act.sa_sigaction = rdbCheckHandleCrash;
+    //act.sa_sigaction = rdbCheckHandleCrash;
     sigaction(SIGSEGV, &act, NULL);
     sigaction(SIGBUS, &act, NULL);
     sigaction(SIGFPE, &act, NULL);

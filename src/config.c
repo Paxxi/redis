@@ -32,6 +32,7 @@
 #include "Win32_Interop/win32_types.h"
 #include "Win32_Interop/Win32_EventLog.h"
 #include <direct.h>
+#include <io.h>
 #endif
 
 #include "server.h"

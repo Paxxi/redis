@@ -29,6 +29,7 @@
 
 #ifdef _WIN32
 #include "Win32_Interop/win32_types.h"
+#include <io.h>
 #endif
 
 #include "server.h"

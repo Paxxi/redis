@@ -35,6 +35,7 @@
 #include "Win32_Interop/win32_wsiocp2.h"
 #define ANET_NOTUSED(V) V
 #include <Mstcpip.h>
+#include <io.h>
 #endif
 
 #include "fmacros.h"

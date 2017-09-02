@@ -32,6 +32,7 @@
 #include "Win32_Interop/Win32_FDAPI.h"
 #include "Win32_Interop/Win32_ThreadControl.h"
 #include "Win32_Interop/Win32_QFork.h"
+#include <io.h>
 #endif
 
 #include "server.h"

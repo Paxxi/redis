@@ -22,6 +22,7 @@
 
 #include "..\server.h"
 #include "Win32_Portability.h"
+#include <io.h>
 
 void SetupRedisGlobals(LPVOID redisData, size_t redisDataSize, uint32_t dictHashSeed)
 {

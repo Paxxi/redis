@@ -108,6 +108,12 @@
 #include "../../src/Win32_Interop/win32fixes.h"
 #define UNUSED(V) ((void) V)
 #include "../../src/Win32_Interop/win32_ANSI.h"
+#include <io.h>
+#define S_IXUSR S_IEXEC
+#define S_IRWXG (S_IREAD | S_IWRITE | S_IEXEC)
+#define S_IRWXO (S_IREAD | S_IWRITE | S_IEXEC)
+#define S_IRUSR S_IREAD
+#define S_IWUSR S_IWRITE
 #else
 #include <termios.h>
 #include <unistd.h>
@@ -121,8 +127,6 @@
 #include <ctype.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-#include <sys/ioctl.h>
-#include <unistd.h>
 #include "linenoise.h"
 
 #define LINENOISE_DEFAULT_HISTORY_MAX_LEN 100

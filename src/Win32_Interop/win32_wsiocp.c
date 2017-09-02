@@ -28,6 +28,8 @@
 #include "Win32_FDAPI.h"
 #include "Win32_Assert.h"
 #include <errno.h>
+#include <io.h>
+
 
 static HANDLE iocph;
 

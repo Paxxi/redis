@@ -42,7 +42,10 @@ POSIX_ONLY(#include <sys/socket.h>)
 POSIX_ONLY(#include <sys/file.h>)
 #include <math.h>
 
-WIN32_ONLY(extern int WSIOCP_QueueAccept(int listenfd);)
+#if defined(_WIN32)
+#include <io.h>
+extern int WSIOCP_QueueAccept(int listenfd);
+#endif
 
 /* A global reference to myself is handy to make code more clear.
  * Myself always points to server.cluster->myself, that is, the clusterNode
