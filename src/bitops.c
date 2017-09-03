@@ -34,7 +34,7 @@
  * Helpers and low level bit functions.
  * -------------------------------------------------------------------------- */
 
-/* Count number of bits set in the binary array pointed by 's' and PORT_LONG
+/* Count number of bits set in the binary array pointed by 's' and long
  * 'count' bytes. The implementation of this function is required to
  * work with a input string length up to 512 MB. */
 size_t redisPopcount(void *s, PORT_LONG count) {
@@ -92,7 +92,7 @@ size_t redisPopcount(void *s, PORT_LONG count) {
 }
 
 /* Return the position of the first bit set to one (if 'bit' is 1) or
- * zero (if 'bit' is 0) in the bitmap starting at 's' and PORT_LONG 'count' bytes.
+ * zero (if 'bit' is 0) in the bitmap starting at 's' and long 'count' bytes.
  *
  * The function is guaranteed to return a value >= 0 if 'bit' is 0 since if
  * no zero bit is found, it returns count*8 assuming the string is zero
@@ -104,6 +104,7 @@ PORT_LONG redisBitpos(void *s, PORT_ULONG count, int bit) {
     PORT_ULONG skipval, word = 0, one;
     PORT_LONG pos = 0; /* Position of bit, to return to the caller. */
     PORT_ULONG j;
+    int found;
 
     /* Process whole words first, seeking for first word that is not
      * all ones or all zeros respectively if we are lookig for zeros
@@ -111,27 +112,33 @@ PORT_LONG redisBitpos(void *s, PORT_ULONG count, int bit) {
      * blocks of 1 or 0 bits compared to the vanilla bit per bit processing.
      *
      * Note that if we start from an address that is not aligned
-     * to sizeof(PORT_ULONG) we consume it byte by byte until it is
+     * to sizeof(unsigned long) we consume it byte by byte until it is
      * aligned. */
 
-    /* Skip initial bits not aligned to sizeof(PORT_ULONG) byte by byte. */
+    /* Skip initial bits not aligned to sizeof(unsigned long) byte by byte. */
     skipval = bit ? 0 : UCHAR_MAX;
     c = (unsigned char*) s;
+    found = 0;
     while((PORT_ULONG)c & (sizeof(*l)-1) && count) {
-        if (*c != skipval) break;
+        if (*c != skipval) {
+            found = 1;
+            break;
+        }
         c++;
         count--;
         pos += 8;
     }
 
     /* Skip bits with full word step. */
-    skipval = bit ? 0 : PORT_ULONG_MAX;
     l = (PORT_ULONG*) c;
-    while (count >= sizeof(*l)) {
-        if (*l != skipval) break;
-        l++;
-        count -= sizeof(*l);
-        pos += sizeof(*l)*8;
+    if (!found) {
+        skipval = bit ? 0 : ULONG_MAX;
+        while (count >= sizeof(*l)) {
+            if (*l != skipval) break;
+            l++;
+            count -= sizeof(*l);
+            pos += sizeof(*l)*8;
+        }
     }
 
     /* Load bytes into "word" considering the first byte as the most significant
@@ -160,7 +167,7 @@ PORT_LONG redisBitpos(void *s, PORT_ULONG count, int bit) {
 
     /* Last word left, scan bit by bit. The first thing we need is to
      * have a single "1" set in the most significant position in an
-     * PORT_ULONG. We don't know the size of the PORT_LONG so we use a
+     * unsigned long. We don't know the size of the long so we use a
      * simple trick. */
     one = PORT_ULONG_MAX; /* All bits set to 1.*/
     one >>= 1;       /* All bits set to 1 but the MSB. */
@@ -369,8 +376,8 @@ handle_wrap:
 
 /* Debugging function. Just show bits in the specified bitmap. Not used
  * but here for not having to rewrite it when debugging is needed. */
-void printBits(unsigned char *p, PORT_ULONG count) {
-    PORT_ULONG j, i, byte;
+void printBits(unsigned char *p, unsigned long count) {
+    unsigned long j, i, byte;
 
     for (j = 0; j < count; j++) {
         byte = p[j];
@@ -402,7 +409,7 @@ void printBits(unsigned char *p, PORT_ULONG count) {
  * will also parse bit offsets prefixed by "#". In such a case the offset
  * is multiplied by 'bits'. This is useful for the BITFIELD command. */
 int getBitOffsetFromArgument(client *c, robj *o, size_t *offset, int hash, int bits) {
-    PORT_LONGLONG loffset;
+    long long loffset;
     char *err = "bit offset is not an integer or out of range";
     char *p = o->ptr;
     size_t plen = sdslen(p);
@@ -420,7 +427,7 @@ int getBitOffsetFromArgument(client *c, robj *o, size_t *offset, int hash, int b
     if (usehash) loffset *= bits;
 
     /* Limit offset to 512MB in bytes */
-    if ((loffset < 0) || ((PORT_ULONGLONG)loffset >> 3) >= (512*1024*1024))
+    if ((loffset < 0) || ((unsigned long long)loffset >> 3) >= (512*1024*1024))
     {
         addReplyError(c,err);
         return C_ERR;
@@ -440,7 +447,7 @@ int getBitOffsetFromArgument(client *c, robj *o, size_t *offset, int hash, int b
 int getBitfieldTypeFromArgument(client *c, robj *o, int *sign, int *bits) {
     char *p = o->ptr;
     char *err = "Invalid bitfield type. Use something like i16 u8. Note that u64 is not supported but i64 is.";
-    PORT_LONGLONG llbits;
+    long long llbits;
 
     if (p[0] == 'i') {
         *sign = 1;
@@ -496,7 +503,7 @@ robj *lookupStringForBitCommand(client *c, size_t maxbit) {
  *
  * If the source object is NULL the function is guaranteed to return NULL
  * and set 'len' to 0. */
-unsigned char *getObjectReadOnlyString(robj *o, PORT_LONG *len, char *llbuf) {
+unsigned char *getObjectReadOnlyString(robj *o, long *len, char *llbuf) {
     serverAssert(o->type == OBJ_STRING);
     unsigned char *p = NULL;
 
@@ -573,7 +580,7 @@ void getbitCommand(client *c) {
         if (byte < sdslen(o->ptr))
             bitval = ((uint8_t*)o->ptr)[byte] & (1 << bit);
     } else {
-        if (byte < (size_t)ll2string(llbuf,sizeof(llbuf),(PORT_LONG)o->ptr))
+        if (byte < (size_t)ll2string(llbuf,sizeof(llbuf),(long)o->ptr))
             bitval = llbuf[byte] & (1 << bit);
     }
 
@@ -654,8 +661,11 @@ void bitopCommand(client *c) {
 
         /* Fast path: as far as we have data for all the input bitmaps we
          * can take a fast path that performs much better than the
-         * vanilla algorithm. */
+         * vanilla algorithm. On ARM we skip the fast path since it will
+         * result in GCC compiling the code using multiple-words load/store
+         * operations that are not supported even in ARM >= v6. */
         j = 0;
+        #ifndef USE_ALIGNED_ACCESS
         if (minlen >= sizeof(PORT_ULONG)*4 && numkeys <= 16) {
             PORT_ULONG *lp[16];
             PORT_ULONG *lres = (PORT_ULONG*) res;
@@ -716,6 +726,7 @@ void bitopCommand(client *c) {
                 }
             }
         }
+        #endif
 
         /* j is set to the next byte to process by the previous loop. */
         for (; j < maxlen; j++) {
@@ -913,7 +924,7 @@ void bitfieldCommand(client *c) {
         int remargs = c->argc-j-1; /* Remaining args other than current. */
         char *subcmd = c->argv[j]->ptr; /* Current command name. */
         int opcode; /* Current operation code. */
-        PORT_LONGLONG i64 = 0;  /* Signed SET value. */
+        long long i64 = 0;  /* Signed SET value. */
         int sign = 0; /* Signed or unsigned type? */
         int bits = 0; /* Bitfield width in bits. */
 

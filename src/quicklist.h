@@ -96,7 +96,7 @@ typedef struct quicklistEntry {
     quicklistNode *node;
     unsigned char *zi;
     unsigned char *value;
-    PORT_LONGLONG longval;
+    long long longval;
     unsigned int sz;
     int offset;
 } quicklistEntry;
@@ -157,8 +157,8 @@ int quicklistPopCustom(quicklist *quicklist, int where, unsigned char **data,
                        unsigned int *sz, PORT_LONGLONG *sval,
                        void *(*saver)(unsigned char *data, unsigned int sz));
 int quicklistPop(quicklist *quicklist, int where, unsigned char **data,
-                 unsigned int *sz, PORT_LONGLONG *slong);
-unsigned int quicklistCount(quicklist *ql);
+                 unsigned int *sz, long long *slong);
+unsigned int quicklistCount(const quicklist *ql);
 int quicklistCompare(unsigned char *p1, unsigned char *p2, int p2_len);
 size_t quicklistGetLzf(const quicklistNode *node, void **data);
 

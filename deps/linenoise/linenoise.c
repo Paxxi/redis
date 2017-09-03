@@ -108,7 +108,8 @@
 #include "../../src/Win32_Interop/win32fixes.h"
 #define UNUSED(V) ((void) V)
 #include "../../src/Win32_Interop/win32_ANSI.h"
-#include <io.h>
+#include "../../src/Win32_Interop/Win32_FDAPI.h"
+//#include <io.h>
 #define S_IXUSR S_IEXEC
 #define S_IRWXG (S_IREAD | S_IWRITE | S_IEXEC)
 #define S_IRWXO (S_IREAD | S_IWRITE | S_IEXEC)
@@ -654,13 +655,13 @@ void refreshShowHints(struct abuf *ab, struct linenoiseState *l, int plen) {
         int color = -1, bold = 0;
         char *hint = hintsCallback(l->buf,&color,&bold);
         if (hint) {
-            int hintlen = (int)strlen(hint);                                    WIN_PORT_FIX /* cast int */
-            int hintmaxlen = (int)(l->cols-(plen+l->len));                      WIN_PORT_FIX /* cast int */
+            int hintlen = strlen(hint);
+            int hintmaxlen = l->cols-(plen+l->len);
             if (hintlen > hintmaxlen) hintlen = hintmaxlen;
             if (bold == 1 && color == -1) color = 37;
             if (color != -1 || bold != 0)
                 snprintf(seq,64,"\033[%d;%d;49m",bold,color);
-            abAppend(ab,seq,(int)strlen(seq));                                  WIN_PORT_FIX /* cast int */
+            abAppend(ab,seq,strlen(seq));
             abAppend(ab,hint,hintlen);
             if (color != -1 || bold != 0)
                 abAppend(ab,"\033[0m",4);
@@ -695,12 +696,12 @@ static void refreshSingleLine(struct linenoiseState *l) {
     abInit(&ab);
     /* Cursor to left edge */
     snprintf(seq,64,"\r");
-    abAppend(&ab,seq,(int)strlen(seq));
+    abAppend(&ab,seq,strlen(seq));
     /* Write the prompt and the current buffer content */
-    abAppend(&ab,l->prompt,(int)strlen(l->prompt));
-    abAppend(&ab,buf,(int)len);
+    abAppend(&ab,l->prompt,strlen(l->prompt));
+    abAppend(&ab,buf,len);
     /* Show hits if any. */
-    refreshShowHints(&ab,l,(int)plen);                                          WIN_PORT_FIX /* cast int */
+    refreshShowHints(&ab,l,plen);
     /* Erase to right */
     snprintf(seq,64,"\x1b[0K");
     abAppend(&ab,seq,(int)strlen(seq));
@@ -1340,14 +1341,14 @@ int linenoiseHistorySetMaxLen(int len) {
 /* Save the history in the specified file. On success 0 is returned
  * otherwise -1 is returned. */
 int linenoiseHistorySave(const char *filename) {
-    mode_t old_umask = umask(S_IXUSR|S_IRWXG|S_IRWXO);
+    //mode_t old_umask = umask(S_IXUSR|S_IRWXG|S_IRWXO);
     FILE *fp;
     int j;
 
     fp = fopen(filename,"w");
-    umask(old_umask);
+    //umask(old_umask);
     if (fp == NULL) return -1;
-    chmod(filename,S_IRUSR|S_IWUSR);
+    //chmod(filename,S_IRUSR|S_IWUSR);
     for (j = 0; j < history_len; j++)
         fprintf(fp,"%s\n",history[j]);
     fclose(fp);

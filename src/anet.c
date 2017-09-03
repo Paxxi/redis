@@ -35,7 +35,7 @@
 #include "Win32_Interop/win32_wsiocp2.h"
 #define ANET_NOTUSED(V) V
 #include <Mstcpip.h>
-#include <io.h>
+//#include <io.h>
 #endif
 
 #include "fmacros.h"
@@ -455,8 +455,10 @@ int anetUnixGenericConnect(char *err, char *path, int flags)
     sa.sun_family = AF_LOCAL;
     strncpy(sa.sun_path,path,sizeof(sa.sun_path)-1);
     if (flags & ANET_CONNECT_NONBLOCK) {
-        if (anetNonBlock(err,s) != ANET_OK)
+        if (anetNonBlock(err,s) != ANET_OK) {
+            close(s);
             return ANET_ERR;
+        }
     }
     if (connect(s,(struct sockaddr*)&sa,sizeof(sa)) == -1) {
         if (errno == EINPROGRESS &&
@@ -555,7 +557,7 @@ static int anetSetExclusiveAddr(char *err, int fd) {
 
 static int _anetTcpServer(char *err, int port, char *bindaddr, int af, int backlog)
 {
-    int s, rv;
+    int s = -1, rv;
     char _port[6];  /* strlen("65535") */
     struct addrinfo hints, *servinfo, *p;
 
@@ -584,6 +586,7 @@ static int _anetTcpServer(char *err, int port, char *bindaddr, int af, int backl
     }
 
 error:
+    if (s != -1) close(s);
     s = ANET_ERR;
 end:
     freeaddrinfo(servinfo);

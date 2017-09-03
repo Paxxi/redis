@@ -31,7 +31,8 @@
 #include "server.h"
 
 #if defined(_WIN32)
-#include <io.h>
+#include "Win32_Interop/Win32_FDAPI.h"
+//#include <io.h>
 #endif
 
 /* ----------------- Blocking sockets I/O with timeouts --------------------- */

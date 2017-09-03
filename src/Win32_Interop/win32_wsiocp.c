@@ -28,7 +28,12 @@
 #include "Win32_FDAPI.h"
 #include "Win32_Assert.h"
 #include <errno.h>
+#ifdef _CRT_INTERNAL_NONSTDC_NAMES
+#undef _CRT_INTERNAL_NONSTDC_NAMES
 #include <io.h>
+#else
+#include <io.h>
+#endif
 
 
 static HANDLE iocph;

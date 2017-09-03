@@ -22,7 +22,12 @@
 
 #include "..\server.h"
 #include "Win32_Portability.h"
+#ifdef _CRT_INTERNAL_NONSTDC_NAMES
+#undef _CRT_INTERNAL_NONSTDC_NAMES
 #include <io.h>
+#else
+#include <io.h>
+#endif
 
 void SetupRedisGlobals(LPVOID redisData, size_t redisDataSize, uint32_t dictHashSeed)
 {
@@ -32,11 +37,11 @@ void SetupRedisGlobals(LPVOID redisData, size_t redisDataSize, uint32_t dictHash
 #endif
 }
 
-int do_rdbSave(char* filename)
+int do_rdbSave(char* filename, rdbSaveInfo* rsi)
 {
 #ifndef NO_QFORKIMPL
     server.rdb_child_pid = GetCurrentProcessId();
-    if( rdbSave(filename) != C_OK ) {
+    if( rdbSave(filename, rsi) != C_OK ) {
         serverLog(LL_WARNING,"rdbSave failed in qfork: %s", strerror(errno));
         return C_ERR;
     }
@@ -91,7 +96,7 @@ int do_rdbSaveToSlavesSockets(int *fds, int numfds, uint64_t *clientids)
         retval = C_ERR;
     
     if (retval == C_OK) {
-        size_t private_dirty = zmalloc_get_private_dirty();
+        size_t private_dirty = zmalloc_get_private_dirty(GetCurrentProcessId());
     
         if (private_dirty) {
             serverLog(LL_NOTICE,

@@ -86,6 +86,7 @@ aeEventLoop *aeCreateEventLoop(int setsize) {
     eventLoop->stop = 0;
     eventLoop->maxfd = -1;
     eventLoop->beforesleep = NULL;
+    eventLoop->aftersleep = NULL;
     if (aeApiCreate(eventLoop) == -1) goto err;
     /* Events with mask == AE_NONE are not set. So let's initialize the
      * vector with it. */
@@ -323,6 +324,20 @@ static int processTimeEvents(aeEventLoop *eventLoop) {
             continue;
         }
 
+        /* Remove events scheduled for deletion. */
+        if (te->id == AE_DELETED_EVENT_ID) {
+            aeTimeEvent *next = te->next;
+            if (prev == NULL)
+                eventLoop->timeEventHead = te->next;
+            else
+                prev->next = te->next;
+            if (te->finalizerProc)
+                te->finalizerProc(eventLoop, te->clientData);
+            zfree(te);
+            te = next;
+            continue;
+        }
+
         /* Make sure we don't process time events created by time events in
          * this iteration. Note that this check is currently useless: we always
          * add new timers on the head, however if we change the implementation
@@ -363,6 +378,7 @@ static int processTimeEvents(aeEventLoop *eventLoop) {
  * if flags has AE_FILE_EVENTS set, file events are processed.
  * if flags has AE_TIME_EVENTS set, time events are processed.
  * if flags has AE_DONT_WAIT set the function returns ASAP until all
+ * if flags has AE_CALL_AFTER_SLEEP set, the aftersleep callback is called.
  * the events that's possible to process without to wait are processed.
  *
  * The function returns the number of events processed. */
@@ -380,7 +396,7 @@ int aeProcessEvents(aeEventLoop *eventLoop, int flags)
     if (!(flags & AE_TIME_EVENTS) && !(flags & AE_FILE_EVENTS)) return 0;
 
     /* Note that we want call select() even if there are no
-     * file events to process as PORT_LONG as we want to process time
+     * file events to process as long as we want to process time
      * events, in order to sleep until the next time event is ready
      * to fire. */
     if (eventLoop->maxfd != -1 ||
@@ -399,7 +415,7 @@ int aeProcessEvents(aeEventLoop *eventLoop, int flags)
 
             /* How many milliseconds we need to wait for the next
              * time event to fire? */
-            PORT_LONGLONG ms =
+            long long ms =
                 (shortest->when_sec - now_sec)*1000 +
                 shortest->when_ms - now_ms;
 
@@ -423,7 +439,14 @@ int aeProcessEvents(aeEventLoop *eventLoop, int flags)
             }
         }
 
+        /* Call the multiplexing API, will return only on timeout or when
+         * some event fires. */
         numevents = aeApiPoll(eventLoop, tvp);
+
+        /* After sleep callback. */
+        if (eventLoop->aftersleep != NULL && flags & AE_CALL_AFTER_SLEEP)
+            eventLoop->aftersleep(eventLoop);
+
         for (j = 0; j < numevents; j++) {
             aeFileEvent *fe = &eventLoop->events[eventLoop->fired[j].fd];
             int mask = eventLoop->fired[j].mask;
@@ -478,7 +501,7 @@ void aeMain(aeEventLoop *eventLoop) {
     while (!eventLoop->stop) {
         if (eventLoop->beforesleep != NULL)
             eventLoop->beforesleep(eventLoop);
-        aeProcessEvents(eventLoop, AE_ALL_EVENTS);
+        aeProcessEvents(eventLoop, AE_ALL_EVENTS|AE_CALL_AFTER_SLEEP);
     }
 }
 
@@ -488,4 +511,8 @@ char *aeGetApiName(void) {
 
 void aeSetBeforeSleepProc(aeEventLoop *eventLoop, aeBeforeSleepProc *beforesleep) {
     eventLoop->beforesleep = beforesleep;
+}
+
+void aeSetAfterSleepProc(aeEventLoop *eventLoop, aeBeforeSleepProc *aftersleep) {
+    eventLoop->aftersleep = aftersleep;
 }

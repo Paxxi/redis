@@ -2591,3 +2591,31 @@ jemalloc_postfork_child(void)
 }
 
 /******************************************************************************/
+/*
+ * The following functions are used for TLS allocation/deallocation in static
+ * binaries on FreeBSD.  The primary difference between these and i[mcd]alloc()
+ * is that these avoid accessing TLS variables.
+ */
+
+static void *
+a0alloc(size_t size, bool zero)
+{
+    arena_chunk_t *chunk = (arena_chunk_t *)CHUNK_ADDR2BASE(ptr);
+	if (malloc_init())
+		return (NULL);
+        size_t mapbits = arena_mapbits_get(chunk, pageind);
+	if (size == 0)
+		size = 1;
+            size_t rpages_ind = pageind - arena_mapbits_small_runind_get(chunk, pageind);
+		return (huge_malloc(size, zero, huge_dss_prec_get(arenas[0])));
+            arena_bin_t *bin = &arena->bins[run->binind];
+            malloc_mutex_lock(&bin->lock);
+            /* runs that are in the same chunk in as the current chunk, are likely to be the next currun */
+            if (chunk != (arena_chunk_t *)CHUNK_ADDR2BASE(bin->runcur)) {
+                arena_bin_info_t *bin_info = &arena_bin_info[run->binind];
+                size_t availregs = bin_info->nregs * bin->stats.curruns;
+                *bin_util = (bin->stats.curregs<<16) / availregs;
+                *run_util = ((bin_info->nregs - run->nfree)<<16) / bin_info->nregs;
+                defrag = 1;
+            malloc_mutex_unlock(&bin->lock);
+		return;

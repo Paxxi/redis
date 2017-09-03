@@ -155,7 +155,7 @@ extern "C"
 
 // API replacements
 extern fdapi_accept         accept;
-//extern fdapi_access         access;
+extern fdapi_access         access;
 extern fdapi_bind           bind;
 extern fdapi_connect        connect;
 extern fdapi_fcntl          fcntl;
@@ -169,21 +169,22 @@ extern fdapi_getpeername    getpeername;
 extern fdapi_getsockname    getsockname;
 extern fdapi_htonl          htonl;
 extern fdapi_htons          htons;
-//extern fdapi_isatty         isatty;
+extern fdapi_isatty         isatty;
 extern fdapi_inet_ntop      inet_ntop;
 extern fdapi_inet_pton      inet_pton;
 extern fdapi_listen         listen;
-//extern fdapi_lseek64        lseek64;
+extern fdapi_lseek64        lseek64;
 extern fdapi_ntohl          ntohl;
 extern fdapi_ntohs          ntohs;
-//extern fdapi_open           open;
+extern fdapi_open           open;
 extern fdapi_pipe           pipe;
 extern fdapi_poll           poll;
-//extern fdapi_read           read;
+extern fdapi_read           read;
 extern fdapi_select         select;
 extern fdapi_setsockopt     setsockopt;
 extern fdapi_socket         socket;
-//extern fdapi_write          write;
+extern fdapi_write          write;
+//#define open FDAPI_open
 
 // Other FD based APIs
 void    FDAPI_SaveSocketAddrStorage(int rfd, SOCKADDR_STORAGE* socketAddrStorage);

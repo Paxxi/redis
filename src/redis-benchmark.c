@@ -34,7 +34,8 @@
 #include "Win32_Interop/Win32_Signal_Process.h"
 #include "Win32_Interop/Win32_Time.h"
 #include "Win32_Interop/Win32_Error.h"
-#include <io.h>
+#include "Win32_Interop/Win32_FDAPI.h"
+//#include <io.h>
 #endif
 
 #include "fmacros.h"
@@ -78,9 +79,9 @@ static struct config {
     int keepalive;
     int pipeline;
     int showerrors;
-    PORT_LONGLONG start;
-    PORT_LONGLONG totlatency;
-    PORT_LONGLONG *latency;
+    long long start;
+    long long totlatency;
+    long long *latency;
     const char *title;
     list *clients;
     int quiet;
@@ -250,6 +251,16 @@ static void readHandler(aeEventLoop *el, int fd, void *privdata, int mask) {
                 if (reply == (void*)REDIS_REPLY_ERROR) {
                     fprintf(stderr,"Unexpected error reply, exiting...\n");
                     exit(1);
+                }
+
+                if (config.showerrors) {
+                    static time_t lasterr_time = 0;
+                    time_t now = time(NULL);
+                    redisReply *r = reply;
+                    if (r->type == REDIS_REPLY_ERROR && lasterr_time != now) {
+                        lasterr_time = now;
+                        printf("Error from server: %s\n", r->str);
+                    }
                 }
 
                 if (config.showerrors) {
@@ -641,7 +652,7 @@ invalid:
 
 usage:
     printf(
-"Usage: redis-benchmark [-h <host>] [-p <port>] [-c <clients>] [-n <requests]> [-k <boolean>]\n\n"
+"Usage: redis-benchmark [-h <host>] [-p <port>] [-c <clients>] [-n <requests>] [-k <boolean>]\n\n"
 " -h <hostname>      Server hostname (default 127.0.0.1)\n"
 " -p <port>          Server port (default 6379)\n"
 " -s <socket>        Server socket (overrides host and port)\n"
@@ -649,7 +660,7 @@ usage:
 " -c <clients>       Number of parallel connections (default 50)\n"
 " -n <requests>      Total number of requests (default 100000)\n"
 " -d <size>          Data size of SET/GET value in bytes (default 2)\n"
-" -dbnum <db>        SELECT the specified db number (default 0)\n"
+" --dbnum <db>        SELECT the specified db number (default 0)\n"
 " -k <boolean>       1=keep alive 0=reconnect (default 1)\n"
 " -r <keyspacelen>   Use random keys for SET/GET/INCR, random values for SADD\n"
 "  Using this option the benchmark will expand the string __rand_int__\n"
@@ -856,6 +867,13 @@ int main(int argc, const char **argv) {
             len = redisFormatCommand(&cmd,
                 "SADD myset element:__rand_int__");
             benchmark("SADD",cmd,len);
+            free(cmd);
+        }
+
+        if (test_is_selected("hset")) {
+            len = redisFormatCommand(&cmd,
+                "HSET myset:__rand_int__ element:__rand_int__ %s",data);
+            benchmark("HSET",cmd,len);
             free(cmd);
         }
 

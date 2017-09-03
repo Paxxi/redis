@@ -89,9 +89,9 @@ sds sdsnewlen(const void *init, size_t initlen) {
     unsigned char *fp; /* flags pointer. */
 
     sh = s_malloc(hdrlen+initlen+1);
+    if (sh == NULL) return NULL;
     if (!init)
         memset(sh, 0, hdrlen+initlen+1);
-    if (sh == NULL) return NULL;
     s = (char*)sh+hdrlen;
     fp = ((unsigned char*)s)-1;
     switch(type) {
@@ -426,9 +426,9 @@ sds sdscpy(sds s, const char *t) {
  * The function returns the length of the null-terminated string
  * representation stored at 's'. */
 #define SDS_LLSTR_SIZE 21
-int sdsll2str(char *s, PORT_LONGLONG value) {
+int sdsll2str(char *s, long long value) {
     char *p, aux;
-    PORT_ULONGLONG v;
+    unsigned long long v;
     size_t l;
 
     /* Generate the string representation, this method produces
@@ -454,11 +454,11 @@ int sdsll2str(char *s, PORT_LONGLONG value) {
         s++;
         p--;
     }
-    return (int)l;                                                              WIN_PORT_FIX /* cast (int) */
+    return l;
 }
 
-/* Identical sdsll2str(), but for PORT_ULONGLONG type. */
-int sdsull2str(char *s, PORT_ULONGLONG v) {
+/* Identical sdsll2str(), but for unsigned long long type. */
+int sdsull2str(char *s, unsigned long long v) {
     char *p, aux;
     size_t l;
 
@@ -483,14 +483,14 @@ int sdsull2str(char *s, PORT_ULONGLONG v) {
         s++;
         p--;
     }
-    return (int)l;
+    return l;
 }
 
-/* Create an sds string from a PORT_LONGLONG value. It is much faster than:
+/* Create an sds string from a long long value. It is much faster than:
  *
  * sdscatprintf(sdsempty(),"%lld\n", value);
  */
-sds sdsfromlonglong(PORT_LONGLONG value) {
+sds sdsfromlonglong(long long value) {
     char buf[SDS_LLSTR_SIZE];
     int len = sdsll2str(buf,value);
 
@@ -576,25 +576,23 @@ sds sdscatprintf(sds s, const char *fmt, ...) {
  * %s - C String
  * %S - SDS string
  * %i - signed int
- * %I - 64 bit signed integer (PORT_LONGLONG, int64_t)
+ * %I - 64 bit signed integer (long long, int64_t)
  * %u - unsigned int
- * %U - 64 bit unsigned integer (PORT_ULONGLONG, uint64_t)
+ * %U - 64 bit unsigned integer (unsigned long long, uint64_t)
  * %% - Verbatim "%" character.
  */
 sds sdscatfmt(sds s, char const *fmt, ...) {
-    size_t initlen = sdslen(s);
     const char *f = fmt;
     int i;
     va_list ap;
 
     va_start(ap,fmt);
-    f = fmt;    /* Next format specifier byte to process. */
-    i = (int)initlen; /* Position of the next byte to write to dest str. */
+    i = sdslen(s); /* Position of the next byte to write to dest str. */
     while(*f) {
         char next, *str;
         size_t l;
-        PORT_LONGLONG num;
-        PORT_ULONGLONG unum;
+        long long num;
+        unsigned long long unum;
 
         /* Make sure there is always space for at least 1 char. */
         if (sdsavail(s)==0) {
@@ -609,7 +607,7 @@ sds sdscatfmt(sds s, char const *fmt, ...) {
             case 's':
             case 'S':
                 str = va_arg(ap,char*);
-                l = (int)((next == 's') ? strlen(str) : sdslen(str));           WIN_PORT_FIX /* cast (int) */
+                l = (next == 's') ? strlen(str) : sdslen(str);
                 if (sdsavail(s) < l) {
                     s = sdsMakeRoomFor(s,l);
                 }
@@ -622,7 +620,7 @@ sds sdscatfmt(sds s, char const *fmt, ...) {
                 if (next == 'i')
                     num = va_arg(ap,int);
                 else
-                    num = va_arg(ap,PORT_LONGLONG);
+                    num = va_arg(ap,long long);
                 {
                     char buf[SDS_LLSTR_SIZE];
                     l = sdsll2str(buf,num);
@@ -639,7 +637,7 @@ sds sdscatfmt(sds s, char const *fmt, ...) {
                 if (next == 'u')
                     unum = va_arg(ap,unsigned int);
                 else
-                    unum = va_arg(ap,PORT_ULONGLONG);
+                    unum = va_arg(ap,unsigned long long);
                 {
                     char buf[SDS_LLSTR_SIZE];
                     l = sdsull2str(buf,unum);

@@ -48,7 +48,7 @@
 #include "Win32_Interop/Win32_Portability.h"
 #include "win32_interop/win32_types.h"
 #include "Win32_Interop/Win32_FDAPI.h"
-#include <io.h>
+//#include <io.h>
 #endif
 
 #include "fmacros.h"

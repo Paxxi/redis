@@ -30,7 +30,8 @@
 
 #ifdef _WIN32
 #include "Win32_Interop/Win32_Error.h"
-#include <io.h>
+#include "Win32_Interop/Win32_FDAPI.h"
+//#include <io.h>
 #endif
 
 #include "server.h"
@@ -432,7 +433,7 @@ void sentinelSimFailureCrash(void);
 
 /* ========================= Dictionary types =============================== */
 
-unsigned int dictSdsHash(const void *key);
+uint64_t dictSdsHash(const void *key);
 int dictSdsKeyCompare(void *privdata, const void *key1, const void *key2);
 void releaseSentinelRedisInstance(sentinelRedisInstance *ri);
 
@@ -3792,15 +3793,15 @@ struct sentinelLeader {
 /* Helper function for sentinelGetLeader, increment the counter
  * relative to the specified runid. */
 int sentinelLeaderIncr(dict *counters, char *runid) {
-    dictEntry *de = dictFind(counters,runid);
+    dictEntry *existing, *de;
     uint64_t oldval;
 
-    if (de) {
-        oldval = dictGetUnsignedIntegerVal(de);
-        dictSetUnsignedIntegerVal(de,oldval+1);
+    de = dictAddRaw(counters,runid,&existing);
+    if (existing) {
+        oldval = dictGetUnsignedIntegerVal(existing);
+        dictSetUnsignedIntegerVal(existing,oldval+1);
         return (int)oldval+1;                                                   WIN_PORT_FIX /* cast (int) */
     } else {
-        de = dictAddRaw(counters,runid);
         serverAssert(de != NULL);
         dictSetUnsignedIntegerVal(de,1);
         return 1;

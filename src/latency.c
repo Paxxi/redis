@@ -41,8 +41,8 @@ int dictStringKeyCompare(void *privdata, const void *key1, const void *key2) {
     return strcmp(key1,key2) == 0;
 }
 
-unsigned int dictStringHash(const void *key) {
-    return dictGenHashFunction(key, (int)strlen(key));                          WIN_PORT_FIX /* cast (int) */
+uint64_t dictStringHash(const void *key) {
+    return dictGenHashFunction(key, strlen(key));
 }
 
 void dictVanillaFree(void *privdata, void *val);
@@ -79,7 +79,7 @@ int THPIsEnabled(void) {
  * value of the function is non-zero, the process is being targeted by
  * THP support, and is likely to have memory usage / latency issues. */
 int THPGetAnonHugePagesSize(void) {
-    return (int)zmalloc_get_smap_bytes_by_field("AnonHugePages:");              WIN_PORT_FIX /* cast (int) */
+    return zmalloc_get_smap_bytes_by_field("AnonHugePages:",-1);
 }
 
 /* ---------------------------- Latency API --------------------------------- */

@@ -63,16 +63,17 @@
 #include <malloc/malloc.h>
 #define HAVE_MALLOC_SIZE 1
 #define zmalloc_size(p) malloc_size(p)
-
-#elif defined(USE_DLMALLOC)
-#include "Win32_Interop/win32_dlmalloc.h"
-#define ZMALLOC_LIB ("dlmalloc-" __xstr(2) "." __xstr(8) )
-#define HAVE_MALLOC_SIZE 1
-#define zmalloc_size(p)  g_msize(p)
 #endif
 
 #ifndef ZMALLOC_LIB
 #define ZMALLOC_LIB "libc"
+#endif
+
+/* We can enable the Redis defrag capabilities only if we are using Jemalloc
+ * and the version used is our special version modified for Redis having
+ * the ability to return per-allocation fragmentation hints. */
+#if defined(USE_JEMALLOC) && defined(JEMALLOC_FRAG_HINT)
+#define HAVE_DEFRAG
 #endif
 
 void *zmalloc(size_t size);
@@ -81,15 +82,19 @@ void *zrealloc(void *ptr, size_t size);
 void zfree(void *ptr);
 char *zstrdup(const char *s);
 size_t zmalloc_used_memory(void);
-void zmalloc_enable_thread_safeness(void);
 void zmalloc_set_oom_handler(void (*oom_handler)(size_t));
 float zmalloc_get_fragmentation_ratio(size_t rss);
 size_t zmalloc_get_rss(void);
-size_t zmalloc_get_private_dirty(void);
-size_t zmalloc_get_smap_bytes_by_field(char *field);
+size_t zmalloc_get_private_dirty(long pid);
+size_t zmalloc_get_smap_bytes_by_field(char *field, long pid);
 size_t zmalloc_get_memory_size(void);
 void zlibc_free(void *ptr);
 WIN32_ONLY(void zmalloc_free_used_memory_mutex(void);)
+
+#ifdef HAVE_DEFRAG
+void zfree_no_tcache(void *ptr);
+void *zmalloc_no_tcache(size_t size);
+#endif
 
 #ifndef HAVE_MALLOC_SIZE
 size_t zmalloc_size(void *ptr);

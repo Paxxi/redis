@@ -42,7 +42,7 @@ using namespace std;
 extern "C" {
 // Unix compatible FD based routines
 fdapi_accept accept = NULL;
-//fdapi_access access = NULL;
+fdapi_access access = NULL;
 fdapi_bind bind = NULL;
 fdapi_connect connect = NULL;
 fdapi_fcntl fcntl = NULL;
@@ -56,21 +56,21 @@ fdapi_getsockname getsockname = NULL;
 fdapi_getsockopt getsockopt = NULL;
 fdapi_htonl htonl = NULL;
 fdapi_htons htons = NULL;
-//fdapi_isatty isatty = NULL;
+fdapi_isatty isatty = NULL;
 fdapi_inet_ntop inet_ntop = NULL;
 fdapi_inet_pton inet_pton = NULL;
 fdapi_listen listen = NULL;
-//fdapi_lseek64 lseek64 = NULL;
+fdapi_lseek64 lseek64 = NULL;
 fdapi_ntohl ntohl = NULL;
 fdapi_ntohs ntohs = NULL;
-//fdapi_open open = NULL;
+fdapi_open open = NULL;
 fdapi_pipe pipe = NULL;
 fdapi_poll poll = NULL;
-//fdapi_read read = NULL;
+fdapi_read read = NULL;
 fdapi_select select = NULL;
 fdapi_setsockopt setsockopt = NULL;
 fdapi_socket socket = NULL;
-//fdapi_write write = NULL;
+fdapi_write write = NULL;
 }
 
 auto f_WSACleanup = dllfunctor_stdcall<int>("ws2_32.dll", "WSACleanup");
@@ -1191,7 +1191,7 @@ private:
         InitWinsock();
 
         accept = FDAPI_accept;
-        //access = FDAPI_access;
+        access = FDAPI_access;
         bind = FDAPI_bind;
         connect = FDAPI_connect;
         fcntl = FDAPI_fcntl;
@@ -1207,19 +1207,19 @@ private:
         htons = FDAPI_htons;
         inet_ntop = FDAPI_inet_ntop;
         inet_pton = FDAPI_inet_pton;
-        //isatty = FDAPI_isatty;
+        isatty = FDAPI_isatty;
         listen = FDAPI_listen;
-        //lseek64 = FDAPI_lseek64;
+        lseek64 = FDAPI_lseek64;
         ntohl = FDAPI_ntohl;
         ntohs = FDAPI_ntohs;
-        //open = FDAPI_open;
+        open = FDAPI_open;
         pipe = FDAPI_pipe;
         poll = FDAPI_poll;
-        //read = FDAPI_read;
+        read = FDAPI_read;
         select = FDAPI_select;
         setsockopt = FDAPI_setsockopt;
         socket = FDAPI_socket;
-        //write = FDAPI_write;
+        write = FDAPI_write;
     }
 
     ~Win32_FDSockMap() {

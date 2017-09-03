@@ -25,6 +25,7 @@
 #include "win32_Interop/win32fixes.h"
 #include "adlist.h"
 #include "win32_Interop/win32_wsiocp.h"
+#include "ae.h"
 
 #define MAX_COMPLETE_PER_POLL   100
 #define MAX_SOCKET_LOOKUP       65535

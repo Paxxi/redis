@@ -311,7 +311,7 @@ int memtest_preserving_test(PORT_ULONG *m, size_t bytes, int passes) {
          * page but at least two. */
         if (left == 4096) {
             left += 4096;
-            p -= 4096/sizeof(PORT_ULONG);
+            p -= 4096/sizeof(unsigned long);
         }
 
         int pass = 0;
@@ -330,7 +330,7 @@ int memtest_preserving_test(PORT_ULONG *m, size_t bytes, int passes) {
                 memtest_compare_times(end,MEMTEST_DECACHE_SIZE,pass,1,0);
             }
             errors += memtest_compare_times(p,len,pass,4,0);
-            memtest_fill_value(p,len,0,(PORT_ULONG)-1,'S',0);
+            memtest_fill_value(p,len,0,(unsigned long)-1,'S',0);
             if (bytes >= MEMTEST_DECACHE_SIZE) {
                 memtest_compare_times(m,MEMTEST_DECACHE_SIZE,pass,1,0);
                 memtest_compare_times(end,MEMTEST_DECACHE_SIZE,pass,1,0);
@@ -345,7 +345,7 @@ int memtest_preserving_test(PORT_ULONG *m, size_t bytes, int passes) {
         }
         memcpy(p,backup,len); /* Restore. */
         left -= len;
-        p += len/sizeof(PORT_ULONG);
+        p += len/sizeof(unsigned long);
     }
     return errors;
 }
@@ -353,7 +353,7 @@ int memtest_preserving_test(PORT_ULONG *m, size_t bytes, int passes) {
 /* Perform an interactive test allocating the specified number of megabytes. */
 void memtest_alloc_and_test(size_t megabytes, int passes) {
     size_t bytes = megabytes*1024*1024;
-    PORT_ULONG *m = malloc(bytes);
+    unsigned long *m = malloc(bytes);
 
     if (m == NULL) {
         fprintf(stderr,"Unable to allocate %zu megabytes: %s",

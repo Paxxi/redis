@@ -198,21 +198,29 @@
     <ClCompile Include="..\src\bio.c" />
     <ClCompile Include="..\src\bitops.c" />
     <ClCompile Include="..\src\blocked.c" />
+    <ClCompile Include="..\src\childinfo.c" />
     <ClCompile Include="..\src\cluster.c" />
     <ClCompile Include="..\src\config.c" />
     <ClCompile Include="..\src\crc16.c" />
     <ClCompile Include="..\src\crc64.c" />
     <ClCompile Include="..\src\db.c" />
     <ClCompile Include="..\src\debug.c" />
+    <ClCompile Include="..\src\defrag.c" />
     <ClCompile Include="..\src\dict.c" />
     <ClCompile Include="..\src\endianconv.c" />
+    <ClCompile Include="..\src\evict.c" />
+    <ClCompile Include="..\src\expire.c" />
     <ClCompile Include="..\src\geo.c" />
+    <ClCompile Include="..\src\geohash.c" />
+    <ClCompile Include="..\src\geohash_helper.c" />
     <ClCompile Include="..\src\hyperloglog.c" />
     <ClCompile Include="..\src\intset.c" />
     <ClCompile Include="..\src\latency.c" />
+    <ClCompile Include="..\src\lazyfree.c" />
     <ClCompile Include="..\src\lzf_c.c" />
     <ClCompile Include="..\src\lzf_d.c" />
     <ClCompile Include="..\src\memtest.c" />
+    <ClCompile Include="..\src\module.c" />
     <ClCompile Include="..\src\multi.c" />
     <ClCompile Include="..\src\networking.c" />
     <ClCompile Include="..\src\notify.c" />
@@ -221,7 +229,9 @@
     <ClCompile Include="..\src\pubsub.c" />
     <ClCompile Include="..\src\quicklist.c" />
     <ClCompile Include="..\src\rand.c" />
+    <ClCompile Include="..\src\rax.c" />
     <ClCompile Include="..\src\rdb.c" />
+    <ClCompile Include="..\src\redis-check-aof.c" />
     <ClCompile Include="..\src\redis-check-rdb.c" />
     <ClCompile Include="..\src\server.c" />
     <ClCompile Include="..\src\release.c" />
@@ -230,7 +240,9 @@
     <ClCompile Include="..\src\scripting.c" />
     <ClCompile Include="..\src\sds.c" />
     <ClCompile Include="..\src\sentinel.c" />
+    <ClCompile Include="..\src\setproctitle.c" />
     <ClCompile Include="..\src\sha1.c" />
+    <ClCompile Include="..\src\siphash.c" />
     <ClCompile Include="..\src\slowlog.c" />
     <ClCompile Include="..\src\sort.c" />
     <ClCompile Include="..\src\sparkline.c" />
@@ -249,13 +261,19 @@
     <ClInclude Include="..\src\adlist.h" />
     <ClInclude Include="..\src\ae.h" />
     <ClInclude Include="..\src\anet.h" />
+    <ClInclude Include="..\src\asciilogo.h" />
+    <ClInclude Include="..\src\atomicvar.h" />
     <ClInclude Include="..\src\bio.h" />
     <ClInclude Include="..\src\cluster.h" />
     <ClInclude Include="..\src\config.h" />
+    <ClInclude Include="..\src\crc64.h" />
+    <ClInclude Include="..\src\debugmacro.h" />
     <ClInclude Include="..\src\dict.h" />
     <ClInclude Include="..\src\endianconv.h" />
     <ClInclude Include="..\src\fmacros.h" />
     <ClInclude Include="..\src\geo.h" />
+    <ClInclude Include="..\src\geohash.h" />
+    <ClInclude Include="..\src\geohash_helper.h" />
     <ClInclude Include="..\src\help.h" />
     <ClInclude Include="..\src\intset.h" />
     <ClInclude Include="..\src\latency.h" />
@@ -264,7 +282,10 @@
     <ClInclude Include="..\src\pqsort.h" />
     <ClInclude Include="..\src\quicklist.h" />
     <ClInclude Include="..\src\rand.h" />
+    <ClInclude Include="..\src\rax.h" />
+    <ClInclude Include="..\src\rax_malloc.h" />
     <ClInclude Include="..\src\rdb.h" />
+    <ClInclude Include="..\src\redismodule.h" />
     <ClInclude Include="..\src\sdsalloc.h" />
     <ClInclude Include="..\src\server.h" />
     <ClInclude Include="..\src\redisassert.h" />
@@ -272,9 +293,7 @@
     <ClInclude Include="..\src\sds.h" />
     <ClInclude Include="..\src\sha1.h" />
     <ClInclude Include="..\src\slowlog.h" />
-    <ClInclude Include="..\src\solarisfixes.h" />
     <ClInclude Include="..\src\sparkline.h" />
-    <ClInclude Include="..\src\testhelp.h" />
     <ClInclude Include="..\src\util.h" />
     <ClInclude Include="..\src\version.h" />
     <ClInclude Include="..\src\ziplist.h" />
@@ -287,9 +306,6 @@
     </ProjectReference>
     <ProjectReference Include="..\src\Win32_Interop\Win32_Interop.vcxproj">
       <Project>{8c07f811-c81c-432c-b334-1ae6faecf951}</Project>
-    </ProjectReference>
-    <ProjectReference Include="geohash\geohash.vcxproj">
-      <Project>{2b888c28-52cf-4e94-993c-b43d77e0b91a}</Project>
     </ProjectReference>
     <ProjectReference Include="hiredis\hiredis.vcxproj">
       <Project>{13e85053-54b3-487b-8ddb-3430b1c1b3bf}</Project>

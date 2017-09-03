@@ -22,7 +22,12 @@
 
 #include "Win32_fdapi_crt.h"
 #include "Win32_Common.h"
+#ifdef _CRT_INTERNAL_NONSTDC_NAMES
+#undef _CRT_INTERNAL_NONSTDC_NAMES
 #include <io.h>
+#else
+#include <io.h>
+#endif
 #include <stdlib.h>
 
 int crt_pipe(int *pfds, unsigned int psize, int textmode) {

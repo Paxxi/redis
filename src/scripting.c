@@ -29,7 +29,8 @@
 
 #ifdef _WIN32
 #include "Win32_Interop/Win32_Portability.h"
-#include <io.h>
+#include "Win32_Interop/Win32_FDAPI.h"
+//#include <io.h>
 #endif
 #include "server.h"
 #include "sha1.h"
@@ -289,7 +290,7 @@ void luaReplyToRedisReply(client *c, lua_State *lua) {
         addReply(c,lua_toboolean(lua,-1) ? shared.cone : shared.nullbulk);
         break;
     case LUA_TNUMBER:
-        addReplyLongLong(c,(PORT_LONGLONG)lua_tonumber(lua,-1));
+        addReplyLongLong(c,(long long)lua_tonumber(lua,-1));
         break;
     case LUA_TTABLE:
         /* We need to check if it is an array, an error, or a status reply.
@@ -447,6 +448,7 @@ int luaRedisGenericCommand(lua_State *lua, int raise_error) {
             if (j == 10) {
                 cmdlog = sdscatprintf(cmdlog," ... (%d more)",
                     c->argc-j-1);
+                break;
             } else {
                 cmdlog = sdscatlen(cmdlog," ",1);
                 cmdlog = sdscatsds(cmdlog,c->argv[j]->ptr);
@@ -570,9 +572,9 @@ int luaRedisGenericCommand(lua_State *lua, int raise_error) {
         reply = sdsnewlen(c->buf,c->bufpos);
         c->bufpos = 0;
         while(listLength(c->reply)) {
-            robj *o = listNodeValue(listFirst(c->reply));
+            sds o = listNodeValue(listFirst(c->reply));
 
-            reply = sdscatlen(reply,o->ptr,sdslen(o->ptr));
+            reply = sdscatsds(reply,o);
             listDelNode(c->reply,listFirst(c->reply));
         }
     }
@@ -873,7 +875,7 @@ void scriptingEnableGlobalsProtection(lua_State *lua) {
     s[j++]="end\n";
     s[j++]="mt.__index = function (t, n)\n";
     s[j++]="  if dbg.getinfo(2) and dbg.getinfo(2, \"S\").what ~= \"C\" then\n";
-    s[j++]="    error(\"Script attempted to access unexisting global variable '\"..tostring(n)..\"'\", 2)\n";
+    s[j++]="    error(\"Script attempted to access nonexistent global variable '\"..tostring(n)..\"'\", 2)\n";
     s[j++]="  end\n";
     s[j++]="  return rawget(t, n)\n";
     s[j++]="end\n";
@@ -1184,7 +1186,7 @@ int luaCreateFunction(client *c, lua_State *lua, char *funcname, robj *body) {
 
 /* This is the Lua script "count" hook that we use to detect scripts timeout. */
 void luaMaskCountHook(lua_State *lua, lua_Debug *ar) {
-    PORT_LONGLONG elapsed;
+    long long elapsed;
     UNUSED(ar);
     UNUSED(lua);
 
@@ -1991,7 +1993,7 @@ char *ldbRedisProtocolToHuman_Int(sds *o, char *reply) {
 
 char *ldbRedisProtocolToHuman_Bulk(sds *o, char *reply) {
     char *p = strchr(reply+1,'\r');
-    PORT_LONGLONG bulklen;
+    long long bulklen;
 
     string2ll(reply+1,p-reply-1,&bulklen);
     if (bulklen == -1) {
@@ -2012,7 +2014,7 @@ char *ldbRedisProtocolToHuman_Status(sds *o, char *reply) {
 
 char *ldbRedisProtocolToHuman_MultiBulk(sds *o, char *reply) {
     char *p = strchr(reply+1,'\r');
-    PORT_LONGLONG mbulklen;
+    long long mbulklen;
     int j = 0;
 
     string2ll(reply+1,p-reply-1,&mbulklen);
@@ -2281,7 +2283,7 @@ ldbLog(sdsnew("[e]eval <code>       Execute some Lua code (in a different callfr
 ldbLog(sdsnew("[r]edis <cmd>        Execute a Redis command."));
 ldbLog(sdsnew("[m]axlen [len]       Trim logged Redis replies and Lua var dumps to len."));
 ldbLog(sdsnew("                     Specifying zero as <len> means unlimited."));
-ldbLog(sdsnew("[a]abort             Stop the execution of the script. In sync"));
+ldbLog(sdsnew("[a]bort              Stop the execution of the script. In sync"));
 ldbLog(sdsnew("                     mode dataset changes will be retained."));
 ldbLog(sdsnew(""));
 ldbLog(sdsnew("Debugger functions you can call from Lua scripts:"));
@@ -2395,3 +2397,4 @@ void luaLdbLineHook(lua_State *lua, lua_Debug *ar) {
         server.lua_time_start = mstime();
     }
 }
+

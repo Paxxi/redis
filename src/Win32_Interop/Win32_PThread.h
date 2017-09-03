@@ -1,4 +1,4 @@
-
+#pragma once
 
 #include <windows.h>
 #include <errno.h>
@@ -20,6 +20,7 @@ typedef size_t _sigset_t;
 #define pthread_attr_t ssize_t
 
 #define pthread_mutex_init(a,b) (InitializeCriticalSectionAndSpinCount((a), 0x80000400),0)
+#define pthread_mutex_simple_init(a) InitializeCriticalSection((a))
 #define pthread_mutex_destroy(a) DeleteCriticalSection((a))
 #define pthread_mutex_lock EnterCriticalSection
 #define pthread_mutex_unlock LeaveCriticalSection
@@ -48,6 +49,7 @@ int pthread_cond_init(pthread_cond_t *cond, const void *unused);
 int pthread_cond_destroy(pthread_cond_t *cond);
 int pthread_cond_wait(pthread_cond_t *cond, pthread_mutex_t *mutex);
 int pthread_cond_signal(pthread_cond_t *cond);
+int pthread_cond_broadcast(pthread_cond_t *cond);
 
 int pthread_detach(pthread_t thread);
 int pthread_sigmask(int how, const sigset_t *set, sigset_t *oldset);
